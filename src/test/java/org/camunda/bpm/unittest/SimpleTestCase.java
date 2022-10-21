@@ -36,12 +36,12 @@ public class SimpleTestCase {
     .build();
 
   @Test
-  public void shouldFail() {
+  public void shouldFailWithELExceptionWithBadCount() {
     // given
     BpmnModelInstance process = Bpmn.createExecutableProcess("testProcess")
         .startEvent()
           .exclusiveGateway()
-            .condition("true", "${myBean.myMethod(execution.getVariable('foo'), null, 47, execution.getVariable('bar'), execution.getVariable('baz'))}")
+            .condition("true", "${myBean.myMethod(execution.getVariable('foo'), execution.getVariable('bar'), execution.getVariable('baz'), execution.getVariable('qux'), execution.getVariable('quux'))}")
             .userTask("userTask")
           .moveToLastGateway()
             .condition("false", "${false}")
@@ -60,28 +60,32 @@ public class SimpleTestCase {
         Variables.createVariables()
             .putValue("foo", "a")
             .putValue("bar", null)
-            .putValue("baz", "x"));
+            .putValue("baz", "x")
+            .putValue("qux", "y")
+            .putValue("quux", "z"));
 
     // then
     HistoricActivityInstance userTask = extension.getHistoryService().createHistoricActivityInstanceQuery()
         .activityId("userTask")
         .singleResult();
+
+    // BeanELResolver.class:344
     assertThat(userTask).isNotNull();
   }
 
   static class MyBean {
 
-    public boolean myMethod(String v, String w, int x, String y, String z) {
+    public boolean myMethod(String v, String w, String x, String y, String z) {
       Logger.getLogger(this.getClass().getName())
           .info(v + w + x + y + z);
       return true;
     }
 
-    public boolean myMethod(String v, String w, int x, String y) {
+    public boolean myMethod(String v, String w, String x, String y) {
       return myMethod(v, w, x, y, null);
     }
 
-    public boolean myMethod(String v, String w, int x) {
+    public boolean myMethod(String v, String w, String x) {
       return myMethod(v, w, x, null, null);
     }
 
