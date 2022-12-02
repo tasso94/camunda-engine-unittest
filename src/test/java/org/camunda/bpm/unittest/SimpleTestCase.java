@@ -51,12 +51,15 @@ public class SimpleTestCase {
     assertThat(pi).isActive();
     assertThat(processInstanceQuery().count()).isEqualTo(1);
 
+    List<Task> tasks = extension.getTaskService().createTaskQuery().list();
     List<String> activityIds = runtimeService().getActiveActivityIds(pi.getId());
     ActivityInstance activityInstance = runtimeService().getActivityInstance(activityIds.get(0));
 
-    Task task = task(pi);
-    assertThat(task).isNotNull();
-    complete(task);
+    for (Task task : tasks) {
+      assertThat(task).isNotNull();
+      complete(task);  
+    }
+    
     assertThat(pi).isEnded();
   }
 
